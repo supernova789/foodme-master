@@ -23,12 +23,12 @@
           <fm-rating ng-model="$parent.restaurant.price" symbol="$" readonly="true"></fm-rating>
 
         </div>
-        <div class="span4">
+        <div class="span4" style="position:relative;">
           <!-- <div>{{restaurant.description}}</div> -->
 
-          <p ng-model="collapsed" ng-click="getMoreInfo();collapsed=!collapsed" class="moreInfo">More info +</p>
+          <span ng-model="collapsed" ng-click="getMoreInfo();collapsed=!collapsed" class="moreInfo">More info +</span>
 
-          <div ng-show="collapsed" class="moreInfoBox">{{restaurantInfo.info}}</div>
+          <div ng-show="collapsed" class="moreInfoBox">{{restaurantInfo.info}}<span class="closeButton" ng-click="collapsed=!collapsed"></span></div>
 
         </div>
       </div>
