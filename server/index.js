@@ -65,7 +65,7 @@ app.get(API_MENU_ITEMS, function (req, res) {
 
 function getMenuItems(callback){
   // console.log("calling");
-  request('http://'+config.items.host+':'+config.items.port+'/api/menuitems', (error, response, body) => {
+  request('http://localhost:'+config.items.port+'/api/menuitems', (error, response, body) => {
 
     if (!error && response.statusCode == 200) {
 
@@ -105,7 +105,7 @@ app.get(API_MORE_INFO, function (req, res) {
 
 function getMoreInfo(callback){
   // console.log("calling");
-  request('http://'+config.info.host+':'+config.info.port+'/api/moreinfo', (error, response, body) => {
+  request('http://localhost:'+config.info.port+'/api/moreinfo', (error, response, body) => {
 
     if (!error && response.statusCode == 200) {
 
