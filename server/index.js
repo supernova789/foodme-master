@@ -3,6 +3,7 @@ var fs = require('fs');
 var cors = require('cors');
 var http = require('http');
 var request = require('request');
+var url = require('url');
 
 const config = require('../config');
 
@@ -22,6 +23,12 @@ var API_MENU_ITEMS = '/api/fetchMenuItems';
 
 //API Call to fetch More Info
 var API_MORE_INFO = '/api/fetchMoreInfo';
+
+var siteHost;
+
+
+
+
 
 
 
@@ -55,33 +62,75 @@ exports.start = function(PORT, STATIC_DIR, DATA_FILE, TEST_DIR) {
 // API Call to fetch menu items
 app.get(API_MENU_ITEMS, function (req, res) {
 
-  getMenuItems(function(err, data){ 
-    if(err) return res.send(err); 
-    // console.log("Actual data: "+data);      
-    res.send(data);
+  siteHost_m_items = req.get('host');
+  console.log('Host for menuitems is '+siteHost_m_items);
+
+  if(siteHost_m_items.includes(':')){
+
+    var splitPath_m_items = siteHost_m_items.split(":");
+    var splitHost_m_items = splitPath_m_items[0];
+    var splitPort_m_items = splitPath_m_items[1];
+    console.log('splitHost menuitems :'+splitHost_m_items);
+    console.log('splitPort menuitems:'+splitPort_m_items);
+
+
+    // function getMenuItems(callback){
+      // console.log("calling");
+      request('http://'+splitHost_m_items+':'+config.items.port+'/api/menuitems', (error, response, body) => {
+    
+        if (!error && response.statusCode == 200) {
+    
+            result = JSON.stringify(JSON.parse(body));
+            res.send(result);
+    
+            // console.log('New Data '+result );
+    
+            // callback(null, result);
+    
+        } else {
+           res.send(error);
+            // callback(error, null);
+    
+        }
+    });
+    // }
+
+
+  }else{
+
+    request('http://'+siteHost_m_items+':'+config.items.port+'/api/menuitems', (error, response, body) => {
+    
+      if (!error && response.statusCode == 200) {
+  
+          result = JSON.stringify(JSON.parse(body));
+          res.send(result);
+  
+          // console.log('New Data '+result );
+  
+          // callback(null, result);
+  
+      } else {
+         res.send(error);
+          // callback(error, null);
+  
+      }
   });
+
+  }
+
+
+  // getMenuItems(function(err, data){ 
+  //   if(err) return res.send(err); 
+  //   // console.log("Actual data: "+data);      
+  //   res.send(data);
+  // });
+
+
+
 });   
 
 
-function getMenuItems(callback){
-  // console.log("calling");
-  request('http://localhost:'+config.items.port+'/api/menuitems', (error, response, body) => {
 
-    if (!error && response.statusCode == 200) {
-
-        result = JSON.stringify(JSON.parse(body));
-
-        // console.log('New Data '+result );
-
-        callback(null, result);
-
-    } else {
-
-        callback(error, null);
-
-    }
-});
-}
 
 
 //Code snippet to allow CORS
@@ -96,32 +145,72 @@ app.use(function(req, res, next) {
 // API Call to fetch more info
 app.get(API_MORE_INFO, function (req, res) {
 
-  getMoreInfo(function(err, data){ 
-    if(err) return res.send(err); 
-    // console.log("Actual data: "+data);      
-    res.send(data);
+  var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+  siteHost_m_info = req.get('host');
+  var protocol = req.protocol;
+  var originalLink = req.originalUrl;
+
+  // console.log('Full url is '+fullUrl);
+  console.log('Host for moreinfo is '+siteHost_m_info);
+  // console.log('protocol is '+protocol);
+  // console.log('originalLink is '+originalLink);
+
+  if(siteHost_m_info.includes(':')){
+    // console.log('Contains :');
+    var splitPath_m_info = siteHost_m_info.split(":");
+    var splitHost_m_info = splitPath_m_info[0];
+    var splitPort_m_info = splitPath_m_info[1];
+    console.log('splitHost moreinfo :'+splitHost_m_info);
+    console.log('splitPort moreinfo :'+splitPort_m_info);
+
+
+
+    // getMoreInfo(function(err, data, splitHost, splitPort){ 
+    //   if(err) return res.send(err);    
+    //   res.send(data);
+    // });
+
+
+    // function getMoreInfo(callback, err, data){
+      request('http://'+splitHost_m_info+':'+config.info.port+'/api/moreinfo', (error, response, body) => {
+    
+        if (!error && response.statusCode == 200) {
+    
+            result = JSON.stringify(JSON.parse(body));
+            res.send(result);
+            // callback(null, result);
+    
+        } else {
+           res.send(error); 
+            // callback(error, null);
+        }
+    });
+    // }  
+
+  }else{
+
+    request('http://'+siteHost_m_info+':'+config.info.port+'/api/moreinfo', (error, response, body) => {
+    
+      if (!error && response.statusCode == 200) {
+  
+          result = JSON.stringify(JSON.parse(body));
+          res.send(result);
+          // callback(null, result);
+  
+      } else {
+         res.send(error); 
+          // callback(error, null);
+      }
   });
+
+  }
+
+
+
+
 });
 
-function getMoreInfo(callback){
-  // console.log("calling");
-  request('http://localhost:'+config.info.port+'/api/moreinfo', (error, response, body) => {
 
-    if (!error && response.statusCode == 200) {
-
-        result = JSON.stringify(JSON.parse(body));
-
-        // console.log('New Data '+result );
-
-        callback(null, result);
-
-    } else {
-
-        callback(error, null);
-
-    }
-});
-}
 
 
   // API
@@ -200,12 +289,16 @@ function getMoreInfo(callback){
       storage.add(new RestaurantRecord(restaurant));
     });
 
-    app.listen(PORT, function() {
+    app.listen(PORT, function(req) {
       open('http://localhost:' + PORT + '/');
       console.log('Go to http://localhost:' + PORT + '/');
     });
   });
 
+  // console.log('New Url is '+newUrl);
+
+
+  
 
   // Windows and Node.js before 0.8.9 would crash
   // https://github.com/joyent/node/issues/1553
